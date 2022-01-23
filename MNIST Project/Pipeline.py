@@ -62,5 +62,25 @@ x_test = torch.flatten(x_train, start_dim=1)
 
 
 # 1) model
+
+class GrantSandersonModel(nn.Module):
+    # this model is meant to reflect the 3 blue 1 brown model for a basic perceptron for MNIST digit recognition in the neural network series
+    def __init__(self, input_size, output_size):
+        super().__init__()
+
+        # layers
+        self.layer1 = nn.Linear(input_size, 16)
+        self.layer2 = nn.Linear(16,16)
+        self.layer3 = nn.Linear(16,output_size)
+    
+    def forward(self, x):
+        y_pred = torch.sigmoid(self.layer1(x))
+        y_pred = torch.sigmoid(self.layer2(x))
+        y_pred = torch.sigmoid(self.layer3(x))
+        return y_pred
+
+n_samples, n_features = x_train.shape
+model = GrantSandersonModel(n_features, 10)
+
 # 2) loss and optimizer
 # 4) training
