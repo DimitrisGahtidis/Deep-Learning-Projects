@@ -1,6 +1,8 @@
 import os, codecs 
 import numpy as np
-import torch 
+import torch
+import torch.nn as nn 
+
 
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
@@ -36,3 +38,29 @@ for file in files:
             data_dict[set+'_'+category] = parsed  # SAVE THE NUMPY ARRAY TO A CORRESPONDING KEY  
 # --------------------------------------------------------------------------------------
 
+# 0) prepare data
+def flatten_image(x):
+    x = x.astype(np.float32)
+    x = torch.from_numpy(x)
+    x = torch.flatten(x, start_dim=1)
+    return 
+# load data
+x_train = data_dict['train_images'].astype(np.float32)
+x_test = data_dict['test_images'].astype(np.float32)
+y_train = data_dict['train_labels'].astype(np.float32)
+y_test = data_dict['test_labels'].astype(np.float32)
+
+# convert data to tensor
+x_train = torch.from_numpy(x_train)
+x_test = torch.from_numpy(x_test)
+y_train = torch.from_numpy(y_train)
+y_test = torch.from_numpy(y_test)
+
+# flatten 28x28 image array to 784 column tensor
+x_train = torch.flatten(x_train, start_dim=1)
+x_test = torch.flatten(x_train, start_dim=1)
+
+
+# 1) model
+# 2) loss and optimizer
+# 4) training
