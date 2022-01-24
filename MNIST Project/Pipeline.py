@@ -1,4 +1,5 @@
-import os, codecs 
+import os, codecs
+from re import I 
 import numpy as np
 import torch
 import torch.nn as nn 
@@ -58,7 +59,26 @@ y_test = torch.from_numpy(y_test)
 
 # flatten 28x28 image array to 784 column tensor
 x_train = torch.flatten(x_train, start_dim=1)
-x_test = torch.flatten(x_train, start_dim=1)
+x_train.requires_grad_
+x_test = torch.flatten(x_test, start_dim=1)
+
+def create_labels(y):
+    n_labels = y.shape[0]
+    empty = torch.zeros(n_labels, 10) # create a n_labelsx10 empty label matrix
+    for i, digit in enumerate(y):
+        empty[i][int(digit.item())] = 1 # attach label (1 flag) to appropriate index
+    return empty
+
+y_train = create_labels(y_train)
+y_test = create_labels(y_test)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+device = torch.device("cuda")
+x_train = x_train.to(device)
+x_test = x_test.to(device)
+y_train = y_train.to(device)
+y_test = y_test.to(device)
 
 
 # 1) model
@@ -70,17 +90,72 @@ class GrantSandersonModel(nn.Module):
 
         # layers
         self.layer1 = nn.Linear(input_size, 16)
-        self.layer2 = nn.Linear(16,16)
-        self.layer3 = nn.Linear(16,output_size)
+        self.layer2 = nn.Linear(16, 16)
+        self.layer3 = nn.Linear(16, output_size)
+        self.sigmoid = nn.Sigmoid()
+
     
     def forward(self, x):
-        y_pred = torch.sigmoid(self.layer1(x))
-        y_pred = torch.sigmoid(self.layer2(x))
-        y_pred = torch.sigmoid(self.layer3(x))
+        y_pred = self.sigmoid(self.layer1(x))
+        y_pred = self.sigmoid(self.layer2(y_pred))
+        y_pred = self.sigmoid(self.layer3(y_pred))
         return y_pred
 
+class PythonEngineerModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super().__init__()
+        self.l1 = nn.Linear(input_size, 100)
+        self.relu = nn.ReLU()
+        self.l2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        out = self.l1(x)
+        out = self.relu(out)
+        out = self.l2(out)
+        return out
+
+
 n_samples, n_features = x_train.shape
-model = GrantSandersonModel(n_features, 10)
+model = GrantSandersonModel(n_features, 10).to(device)
 
 # 2) loss and optimizer
-# 4) training
+learning_rate = 0.05
+criterion = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+# 3) training
+n_epochs = 400
+batch_size = 100
+iterations = int(n_samples/batch_size)
+x_batch = torch.split(x_train, batch_size)
+y_batch = torch.split(y_train, batch_size)
+for epoch in range(n_epochs):
+    for i in range(iterations):
+        # forward pass and loss
+        y_pred = model(x_batch[i])
+        loss = criterion(y_pred, y_batch[i])
+        
+        # empty gradient
+        optimizer.zero_grad()
+
+        # backward pass
+        loss.backward()
+
+        # propagate changes
+        optimizer.step()
+
+    if (epoch+1) % 10 == 0:
+        print(f'epoch: {epoch+1}/{n_epochs},  loss = {loss.item():.4f}')
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    y_pred = model(x_test)
+    _, predictions = torch.max(y_pred, 1)
+    _, labels = torch.max(y_test, 1)
+    n_samples += y_test.shape[0]
+    n_correct += (predictions == labels).sum().item()
+    acc = 100.0 * n_correct / n_samples
+    print(f'accuracy = {acc}%')
+    for i in range(10):
+        print(torch.round(y_pred[i]).tolist())
+
