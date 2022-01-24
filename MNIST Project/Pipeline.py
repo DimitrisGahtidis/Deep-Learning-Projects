@@ -132,3 +132,12 @@ for epoch in range(n_epochs):
     if (epoch+1) % 10 == 0:
         print(f'epoch: {epoch+1}/{n_epochs},  loss = {loss.item():.4f}')
 
+with torch.no_grad():
+    n_correct = 0
+    n_samples = y_test.shape[0]
+    y_pred = model(x_test)
+    _, predictions = torch.max(y_pred, 1)
+    _, labels = torch.max(y_test, 1)
+    n_correct += (predictions == labels).sum().item()
+    acc = 100.0 * n_correct / n_samples
+    print(f'accuracy = {acc}%')
