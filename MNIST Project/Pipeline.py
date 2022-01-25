@@ -1,8 +1,10 @@
 import os, codecs
 from re import I 
 import numpy as np
+
 import torch
 import torch.nn as nn 
+from torch.utils.data import Dataset, DataLoader
 
 
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
@@ -39,45 +41,39 @@ for file in files:
             data_dict[set+'_'+category] = parsed  # SAVE THE NUMPY ARRAY TO A CORRESPONDING KEY  
 # --------------------------------------------------------------------------------------
 
-# 0) prepare data
-def flatten_image(x):
-    x = x.astype(np.float32)
-    x = torch.from_numpy(x)
-    x = torch.flatten(x, start_dim=1)
-    return 
-# load data
-x_train = data_dict['train_images'].astype(np.float32)
-x_test = data_dict['test_images'].astype(np.float32)
-y_train = data_dict['train_labels'].astype(np.float32)
-y_test = data_dict['test_labels'].astype(np.float32)
+# 0) Create dataset and dataloader
+class TrainDataset(Dataset):
+    def __init__(self, data_dict):
+        self.x = torch.from_numpy(data_dict['train_images'].astype(np.float32))
+        self.y = torch.from_numpy(data_dict['train_labels'].astype(np.float32))
+        self.n_samples = self.x.shape[0]
 
-# convert data to tensor
-x_train = torch.from_numpy(x_train)
-x_test = torch.from_numpy(x_test)
-y_train = torch.from_numpy(y_train)
-y_test = torch.from_numpy(y_test)
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
 
-# flatten 28x28 image array to 784 column tensor
-x_train = torch.flatten(x_train, start_dim=1)
-x_test = torch.flatten(x_test, start_dim=1)
+    def __len__(self):
+        return self.n_samples
 
-def create_labels(y):
-    n_labels = y.shape[0]
-    empty = torch.zeros(n_labels, 10) # create a n_labelsx10 empty label matrix
-    for i, digit in enumerate(y):
-        empty[i][int(digit.item())] = 1 # attach label (1 flag) to appropriate index e.g. a "5" looks like [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
-    return empty
+class TestDataset(Dataset):
+    def __init__(self, data_dict):
+        self.x = torch.from_numpy(data_dict['test_images'].astype(np.float32))
+        self.y = torch.from_numpy(data_dict['test_labels'].astype(np.float32))
+        self.n_samples = self.x.shape[0]
 
-y_train = create_labels(y_train)
-y_test = create_labels(y_test)
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
+
+    def __len__(self):
+        return self.n_samples
+
+train_dataset = TrainDataset(data_dict)
+test_dataset = TestDataset(data_dict)
+
+batch_size = 100
+train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=test_dataset.n_samples)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # scan for cuda availability
-
-x_train = x_train.to(device)
-x_test = x_test.to(device)
-y_train = y_train.to(device)
-y_test = y_test.to(device)
-
 
 # 1) model
 class GrantSandersonModel(nn.Module):
@@ -98,27 +94,33 @@ class GrantSandersonModel(nn.Module):
         y_pred = self.sigmoid(self.layer3(y_pred))
         return y_pred
 
-n_samples, n_features = x_train.shape
-model = GrantSandersonModel(n_features, 10).to(device)
+n_samples = train_dataset.n_samples
+model = GrantSandersonModel(28*28, 10).to(device)
 
 # 2) loss and optimizer
-learning_rate = 0.05
+learning_rate = 0.1
 criterion = nn.MSELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 400
-batch_size = 100
-iterations = int(n_samples/batch_size)
-
-x_batch = torch.split(x_train, batch_size)
-y_batch = torch.split(y_train, batch_size)
+n_epochs = 100
 
 for epoch in range(n_epochs):
-    for i in range(iterations):
+    for i, (x_batch, y_batch) in enumerate(train_dataloader):
+        
+        # flatten 28x28 image array to 784 column tensor and move to cuda device
+        x_batch = torch.flatten(x_batch, start_dim=1).to(device)
+        y_batch = y_batch.to(device)
+
+        # e.g. if label = 2 replace it with a tensor of the form [0, 0, 1, 0, ...] (1x10) 
+        empty = torch.zeros(batch_size, 10) # create empty zeros array tensor for each sample
+        activation_index = [[*range(0,batch_size)],[int(y) for y in y_batch]] # index to mark where the 1's should be placed
+        empty[activation_index] = 1 
+        y_batch = empty
+
         # forward pass and loss
-        y_pred = model(x_batch[i])
-        loss = criterion(y_pred, y_batch[i])
+        y_pred = model(x_batch)
+        loss = criterion(y_pred, y_batch)
         
         # empty gradient
         optimizer.zero_grad()
@@ -132,12 +134,20 @@ for epoch in range(n_epochs):
     if (epoch+1) % 10 == 0:
         print(f'epoch: {epoch+1}/{n_epochs},  loss = {loss.item():.4f}')
 
-with torch.no_grad():
-    n_correct = 0
-    n_samples = y_test.shape[0]
-    y_pred = model(x_test)
-    _, predictions = torch.max(y_pred, 1)
-    _, labels = torch.max(y_test, 1)
-    n_correct += (predictions == labels).sum().item()
-    acc = 100.0 * n_correct / n_samples
-    print(f'accuracy = {acc}%')
+with torch.no_grad(): #Test accuracy
+    for i, (x_test, y_test) in enumerate(test_dataloader):
+
+        x_test = torch.flatten(x_test, start_dim=1).to(device)
+        y_test = y_test.to(device)
+
+        n_correct = 0
+        n_samples = y_test.shape[0]
+
+        y_pred = model(x_test)
+
+        _, predictions = torch.max(y_pred, 1)
+        labels = y_test
+
+        n_correct += (predictions == labels).sum().item()
+        acc = 100.0 * n_correct / n_samples
+        print(f'accuracy = {acc}%')
