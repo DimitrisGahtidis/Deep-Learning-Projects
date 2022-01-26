@@ -135,7 +135,7 @@ for epoch in range(n_epochs):
         print(f'epoch: {epoch+1}/{n_epochs},  loss = {loss.item():.4f}')
 
 with torch.no_grad(): #Test accuracy
-    for i, (x_test, y_test) in enumerate(test_dataloader):
+    for x_test, y_test in test_dataloader:
 
         x_test = torch.flatten(x_test, start_dim=1).to(device)
         y_test = y_test.to(device)
