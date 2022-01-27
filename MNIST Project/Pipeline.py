@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn 
 from torch.utils.data import Dataset, DataLoader
 
-
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
 datapath = './MNIST Project/MNIST Dataset/'
@@ -88,11 +87,11 @@ class GrantSandersonModel(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     
-    def forward(self, x):
-        y_pred = self.sigmoid(self.layer1(x))
-        y_pred = self.sigmoid(self.layer2(y_pred))
-        y_pred = self.sigmoid(self.layer3(y_pred))
-        return y_pred
+    def forward(self, sample):
+        label_pred = self.sigmoid(self.layer1(sample))
+        label_pred = self.sigmoid(self.layer2(label_pred))
+        label_pred = self.sigmoid(self.layer3(label_pred))
+        return label_pred
 
 n_samples = train_dataset.n_samples
 model = GrantSandersonModel(28*28, 10).to(device)
@@ -106,21 +105,21 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 n_epochs = 100
 
 for epoch in range(n_epochs):
-    for i, (x_batch, y_batch) in enumerate(train_dataloader):
+    for i, (sample_batch, label_batch) in enumerate(train_dataloader):
         
         # flatten 28x28 image array to 784 column tensor and move to cuda device
-        x_batch = torch.flatten(x_batch, start_dim=1).to(device)
-        y_batch = y_batch.to(device)
+        sample_batch = torch.flatten(sample_batch, start_dim=1).to(device)
 
         # e.g. if label = 2 replace it with a tensor of the form [0, 0, 1, 0, ...] (1x10) 
         empty = torch.zeros(batch_size, 10) # create empty zeros array tensor for each sample
-        activation_index = [[*range(0,batch_size)],[int(y) for y in y_batch]] # index to mark where the 1's should be placed
+        activation_index = [[x for x in range(0,batch_size)],[int(y) for y in label_batch]] # index to mark where the 1's should be placed
         empty[activation_index] = 1 
-        y_batch = empty
+        label_batch = empty
+        label_batch = label_batch.to(device)
 
         # forward pass and loss
-        y_pred = model(x_batch)
-        loss = criterion(y_pred, y_batch)
+        label_pred = model(sample_batch)
+        loss = criterion(label_pred, label_batch)
         
         # empty gradient
         optimizer.zero_grad()
@@ -135,19 +134,22 @@ for epoch in range(n_epochs):
         print(f'epoch: {epoch+1}/{n_epochs},  loss = {loss.item():.4f}')
 
 with torch.no_grad(): #Test accuracy
-    for x_test, y_test in test_dataloader:
+    for samples_test, labels_test in test_dataloader:
 
-        x_test = torch.flatten(x_test, start_dim=1).to(device)
-        y_test = y_test.to(device)
+        samples_test = torch.flatten(samples_test, start_dim=1).to(device)
+        labels_test = labels_test.to(device)
 
         n_correct = 0
-        n_samples = y_test.shape[0]
+        n_samples = labels_test.shape[0]
 
-        y_pred = model(x_test)
+        label_pred = model(samples_test)
 
-        _, predictions = torch.max(y_pred, 1)
-        labels = y_test
+        _, predictions = torch.max(label_pred, 1)
+        labels = labels_test
 
-        n_correct += (predictions == labels).sum().item()
+        n_correct = (predictions == labels).sum().item()
         acc = 100.0 * n_correct / n_samples
         print(f'accuracy = {acc}%')
+
+    modelpath = "./MNIST Project/model.pth"
+    torch.save(model.state_dict(), modelpath)    # save model state dict
