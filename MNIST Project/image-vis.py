@@ -7,7 +7,6 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
-modelpath = "./MNIST Project/model.pth"
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
 datapath = './MNIST Project/MNIST Dataset/'
@@ -60,6 +59,7 @@ class GrantSandersonModel(nn.Module):
         label_pred = self.sigmoid(self.layer3(label_pred))
         return label_pred
 
+modelpath = "./MNIST Project/model.pth"
 
 loaded_model = GrantSandersonModel(28*28, 10)
 loaded_model.load_state_dict(torch.load(modelpath))
