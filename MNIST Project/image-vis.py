@@ -7,8 +7,6 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
-from pipeline import datapath, FILE
-
 modelpath = "./MNIST Project/model.pth"
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
@@ -81,7 +79,7 @@ class TestDataset(Dataset):
 
 test_dataset = TestDataset(data_dict)
 
-batch_size = 100
+batch_size = 1000
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 def plot_image(sample):
