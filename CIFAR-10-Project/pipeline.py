@@ -53,7 +53,7 @@ criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 10
+n_epochs = 4
 n_steps = ceil(n_samples/batch_size)
 print("Starting training...")
 
@@ -117,7 +117,7 @@ with torch.no_grad(): # Test accuracy
     print(f'Total network accuracy = {acc}%')
 
     for n_correct, n_samples, class_ in zip(n_correct_class, n_samples_class, classes):
-        acc_class = 100.0 * n_correct / n_samples
-        print(f'{class_} accruacy = {acc_class}% representation = {n_samples/n_samples_class.sum().item()}%')
-
+        acc_class = 100.0 * n_correct/n_samples
+        rep = 100.0 * n_samples/sum(n_samples_class)
+        print(f'{class_} accuracy = {acc_class}% representation = {100*n_samples/sum(n_samples_class)}%')
 
