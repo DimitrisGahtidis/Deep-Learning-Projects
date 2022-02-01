@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
-datapath = './MNIST Project/MNIST Dataset/'
+datapath = './MNIST-Project/MNIST-Dataset/'
 
 files = os.listdir(datapath)
 
@@ -151,5 +151,5 @@ with torch.no_grad(): #Test accuracy
         acc = 100.0 * n_correct / n_samples
         print(f'accuracy = {acc}%')
 
-    modelpath = "./MNIST Project/model.pth"
+    modelpath = "./MNIST-Project/model.pth"
     torch.save(model.state_dict(), modelpath)    # save model state dict
