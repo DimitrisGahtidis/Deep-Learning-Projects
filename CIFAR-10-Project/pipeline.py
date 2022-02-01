@@ -53,9 +53,9 @@ criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 4
+n_epochs = 10
 n_steps = ceil(n_samples/batch_size)
-print("Starting Training...")
+print("Starting training...")
 
 for epoch in range(n_epochs):
     for step, (sample_batch, label_batch) in enumerate(train_dataloader):
@@ -76,19 +76,48 @@ for epoch in range(n_epochs):
 
         # propagate changes
         optimizer.step()
-        if ((epoch+1) % 1 == 0)&((step+1) % 2000 == 0):
+        if ((epoch+1) % 2 == 0)&((step+1) % 2000 == 0):
             print(f'epoch: {epoch+1}/{n_epochs}, batch {step+1}/{n_steps},  loss = {loss.item():.4f}')
 
-print("Finished Training...")
+print("Finished training...")
 
-with torch.no_grad(): #Test accuracy
-    for samples_test, labels_test in test_dataloader:
 
-        n_correct = 0
-        n_samples = 0
-
-        acc = 100.0 * n_correct / n_samples
-        print(f'accuracy = {acc}%')
-
+with torch.no_grad(): # Test accuracy
     modelpath = "./CIFAR-10-Project/model.pth"
-    torch.save(model.state_dict(), modelpath)    # save model state dict
+    print("\nSaving model state dict...")
+    try:
+        torch.save(model.state_dict(), modelpath)    # save model state dict
+    except:
+        print("Error saving model: check the save pathway is correct...")
+    else:
+        print("Model saved successfully...")
+
+    print("\nStarting accuracy test...")
+    n_correct = 0
+    n_samples = 0
+
+    n_correct_class = [0 for i in range(10)]
+    n_samples_class = [0 for i in range(10)]
+
+    for sample_batch, label_batch in test_dataloader:
+        sample_batch = sample_batch.to(device)
+        label_batch = label_batch.to(device)
+        sample_pred = model(sample_batch)
+
+        _, batch_pred = torch.max(sample_pred, 1)
+        n_samples = label_batch.shape[0]
+        n_correct = (batch_pred == label_batch).sum().item()
+
+        for prediction, label in zip(batch_pred, label_batch):
+            if (label == prediction):
+                n_correct_class[label] += 1
+            n_samples_class[label] += 1
+
+    acc = 100.0 * n_correct / n_samples
+    print(f'Total network accuracy = {acc}%')
+
+    for n_correct, n_samples, class_ in zip(n_correct_class, n_samples_class, classes):
+        acc_class = 100.0 * n_correct / n_samples
+        print(f'{class_} accruacy = {acc_class}% representation = {n_samples/n_samples_class.sum().item()}%')
+
+
