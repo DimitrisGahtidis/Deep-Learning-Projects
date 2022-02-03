@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision
 from torchvision import transforms
 from math import ceil
+import matplotlib.pyplot as plt
+import numpy as np
 
 # dataset and dataloader
 
@@ -47,23 +49,23 @@ class CNNModel(nn.Module):
 model = CNNModel().to(device)
 
 # loss and optimizer
-learning_rate = 0.01
+learning_rate = 0.005
 n_samples = len(train_dataset)
 criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 10
+n_epochs = 15
 n_steps = ceil(n_samples/batch_size)
 
 
-def train(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer):
+def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, device):
 
     batch_size = train_dataloader.batch_size
     n_samples = len(train_dataloader.dataset)
     n_steps = ceil(n_samples/batch_size)
 
-    print("Starting training...")
+    print("\nStarting training...")
     for epoch in range(n_epochs):
         for step, (sample_batch, label_batch) in enumerate(train_dataloader):
             
@@ -87,9 +89,10 @@ def train(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer
                 print(f'epoch: {epoch+1}/{n_epochs} batch = {step+1}/{n_steps} loss = {loss.item():.4f}')
     print("Finished training...")
 
-train(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer)
+train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, device)
 
-def save_model(modelpath):
+@torch.no_grad()
+def save_model(model, modelpath):
     print("\nSaving model state dict...")
     try:
         torch.save(model.state_dict(), modelpath)    # save model state dict
@@ -98,9 +101,52 @@ def save_model(modelpath):
     else:
         print("Model saved successfully...")
 
+def load_model(ModelClass, modelpath):
+    print("\nLoading model...")
+    try:
+        loaded_model = ModelClass()
+        loaded_model.load_state_dict(torch.load(modelpath))
+        loaded_model.eval() 
+    except:
+        print("Error loading model: check the load pathway is correct...")
+    else:
+        print("Model loaded successfully...")
+        return loaded_model
+
+@torch.no_grad()       
+def make_confusion_matrix(model, dataloader, classes, device):
+    confusion = torch.zeros(len(classes), len(classes), device=device)
+    for sample_batch, label_batch in dataloader:
+        sample_batch = sample_batch.to(device)
+        label_batch = label_batch.to(device)
+        sample_pred = model(sample_batch)
+
+        _, batch_pred = torch.max(sample_pred, 1)
+        for prediction, label in zip(batch_pred, label_batch):
+            confusion[label,prediction] += 1
+    return confusion
+
+def plot_confusion_matrix(confusion, classes):
+    fig, ax = plt.subplots()
+    cax = ax.matshow(confusion.cpu())
+    fig.colorbar(cax)
+    for (i, j), value in np.ndenumerate(confusion.cpu().numpy()):
+        ax.text(j, i, f'{int(value)}', ha='center', va='center', color='white')
+    ax.set_title('Confusion matrix')
+    ax.set_xlabel('Network guess')
+    ax.set_ylabel('Correct label')
+    ax.xaxis.set_ticks_position("bottom")
+    plt.yticks(range(len(classes)), classes)
+    plt.xticks(range(len(classes)), classes, rotation=90)
+
 with torch.no_grad(): # Test accuracy
     modelpath = "./CIFAR-10-Project/model.pth"
-    save_model()
+    save_model(model, modelpath)
+    # model = load_model(CNNModel, modelpath).to(device)
+    confusion = make_confusion_matrix(model, test_dataloader, classes, device)
+    
+    plot_confusion_matrix(confusion, classes)
+    plt.savefig("./CIFAR-10-Project/confusion_matrix.png", bbox_inches='tight')
 
     print("\nStarting accuracy test...")
     n_correct = 0
@@ -130,4 +176,5 @@ with torch.no_grad(): # Test accuracy
         acc_class = 100.0 * n_correct/n_samples
         rep = 100.0 * n_samples/sum(n_samples_class)
         print(f'{class_} accuracy = {acc_class}% representation = {100*n_samples/sum(n_samples_class)}%')
+    plt.show()
 
