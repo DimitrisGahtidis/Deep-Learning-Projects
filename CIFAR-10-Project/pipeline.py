@@ -8,23 +8,7 @@ from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
 
-# dataset and dataloader
-
-## implementing dataset transform, data is initially a PILImage of range [0,1] we want to normalize the data
-## to a range of [-1, 1] after transforming it to a tensor 
-transform = torchvision.transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=True, download=True, transform=transform)
-test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
-
-batch_size = 10
-train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # scan for cuda availability
-
-classes = ("plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck")
-# model
+# Class and function definitions
 class CNNModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -35,7 +19,6 @@ class CNNModel(nn.Module):
         self.layer1 = nn.Linear(16*5*5, 100)
         self.layer2 = nn.Linear(100, 50)
         self.layer3 = nn.Linear(50, 10)
-
     
     def forward(self, sample):
         sample = self.pool(functional.relu(self.conv1(sample)))
@@ -45,19 +28,6 @@ class CNNModel(nn.Module):
         sample = functional.relu(self.layer2(sample))
         sample = self.layer3(sample)
         return sample
-
-model = CNNModel().to(device)
-
-# loss and optimizer
-learning_rate = 0.005
-n_samples = len(train_dataset)
-criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-# 3) training
-n_epochs = 15
-n_steps = ceil(n_samples/batch_size)
-
 
 def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, device):
 
@@ -88,8 +58,6 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
             if ((epoch+1) % 1 == 0)&((step+1) % 1000 == 0):
                 print(f'epoch: {epoch+1}/{n_epochs} batch = {step+1}/{n_steps} loss = {loss.item():.4f}')
     print("Finished training...")
-
-train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, device)
 
 @torch.no_grad()
 def save_model(model, modelpath):
@@ -138,6 +106,37 @@ def plot_confusion_matrix(confusion, classes):
     ax.xaxis.set_ticks_position("bottom")
     plt.yticks(range(len(classes)), classes)
     plt.xticks(range(len(classes)), classes, rotation=90)
+
+# dataset and dataloader
+
+## implementing dataset transform, data is initially a PILImage of range [0,1] we want to normalize the data
+## to a range of [-1, 1] after transforming it to a tensor 
+transform = torchvision.transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=True, download=True, transform=transform)
+test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
+
+batch_size = 10
+train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # scan for cuda availability
+
+classes = ("plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck")
+# model
+model = CNNModel().to(device)
+
+# loss and optimizer
+learning_rate = 0.005
+n_samples = len(train_dataset)
+criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+# 3) training
+n_epochs = 15
+n_steps = ceil(n_samples/batch_size)
+
+train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, device)
 
 with torch.no_grad(): # Test accuracy
     modelpath = "./CIFAR-10-Project/model.pth"
