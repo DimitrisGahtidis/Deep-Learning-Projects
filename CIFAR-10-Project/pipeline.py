@@ -15,7 +15,7 @@ transform = torchvision.transforms.Compose([transforms.ToTensor(), transforms.No
 train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=True, download=True, transform=transform)
 test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
 
-batch_size = 4
+batch_size = 10
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
 
@@ -53,37 +53,43 @@ criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 4
+n_epochs = 10
 n_steps = ceil(n_samples/batch_size)
-print("Starting training...")
-
-for epoch in range(n_epochs):
-    for step, (sample_batch, label_batch) in enumerate(train_dataloader):
-        
-        # flatten 28x28 image array to 784 column tensor and move to cuda device
-        sample_batch = sample_batch.to(device)
-        label_batch = label_batch.to(device)
-
-        # forward pass and loss
-        label_pred = model(sample_batch)
-        loss = criterion(label_pred, label_batch)
-        
-        # empty gradient
-        optimizer.zero_grad()
-
-        # backward pass
-        loss.backward()
-
-        # propagate changes
-        optimizer.step()
-        if ((epoch+1) % 2 == 0)&((step+1) % 2000 == 0):
-            print(f'epoch: {epoch+1}/{n_epochs}, batch {step+1}/{n_steps},  loss = {loss.item():.4f}')
-
-print("Finished training...")
 
 
-with torch.no_grad(): # Test accuracy
-    modelpath = "./CIFAR-10-Project/model.pth"
+def train(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer):
+
+    batch_size = train_dataloader.batch_size
+    n_samples = len(train_dataloader.dataset)
+    n_steps = ceil(n_samples/batch_size)
+
+    print("Starting training...")
+    for epoch in range(n_epochs):
+        for step, (sample_batch, label_batch) in enumerate(train_dataloader):
+            
+            # flatten 28x28 image array to 784 column tensor and move to cuda device
+            sample_batch = sample_batch.to(device)
+            label_batch = label_batch.to(device)
+
+            # forward pass and loss
+            label_pred = model(sample_batch)
+            loss = criterion(label_pred, label_batch)
+            
+            # empty gradient
+            optimizer.zero_grad()
+
+            # backward pass
+            loss.backward()
+
+            # propagate changes
+            optimizer.step()
+            if ((epoch+1) % 1 == 0)&((step+1) % 1000 == 0):
+                print(f'epoch: {epoch+1}/{n_epochs} batch = {step+1}/{n_steps} loss = {loss.item():.4f}')
+    print("Finished training...")
+
+train(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer)
+
+def save_model(modelpath):
     print("\nSaving model state dict...")
     try:
         torch.save(model.state_dict(), modelpath)    # save model state dict
@@ -91,6 +97,10 @@ with torch.no_grad(): # Test accuracy
         print("Error saving model: check the save pathway is correct...")
     else:
         print("Model saved successfully...")
+
+with torch.no_grad(): # Test accuracy
+    modelpath = "./CIFAR-10-Project/model.pth"
+    save_model()
 
     print("\nStarting accuracy test...")
     n_correct = 0

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # --------------------------Gosh4AI-Data-Processing-Code--------------------------------
 # PROVIDE YOUR DIRECTORY WITH THE EXTRACTED FILES HERE
-datapath = './MNIST Project/MNIST Dataset/'
+datapath = './MNIST-Project/MNIST-Dataset/'
 
 files = os.listdir(datapath)
 
@@ -59,7 +59,7 @@ class GrantSandersonModel(nn.Module):
         label_pred = self.sigmoid(self.layer3(label_pred))
         return label_pred
 
-modelpath = "./MNIST Project/model.pth"
+modelpath = "./MNIST-Project/model.pth"
 
 loaded_model = GrantSandersonModel(28*28, 10)
 loaded_model.load_state_dict(torch.load(modelpath))
