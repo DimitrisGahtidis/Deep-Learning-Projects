@@ -158,9 +158,9 @@ test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Da
 test_dataset, validation_dataset = random_split(test_dataset, [ceil(len(test_dataset)/2), floor(len(test_dataset)/2)])
 
 batch_size = 64
-train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
-test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, pin_memory=True)
-validation_dataloader = DataLoader(dataset=validation_dataset, batch_size=batch_size, pin_memory=True)
+train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
+validation_dataloader = DataLoader(dataset=validation_dataset, batch_size=batch_size)
 
 
 classes = ("plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck")
