@@ -149,7 +149,9 @@ def get_total_accuracy(confusion):
 ## to a range of [-1, 1] after transforming it to a tensor 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # scan for cuda availability
 
-transform = transforms.Compose([transforms.ToTensor(,device=device), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+transform = transforms.Compose([transforms.ToTensor(), 
+                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                ])
 
 train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=True, download=True, transform=transform)
 test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
@@ -174,6 +176,9 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 n_epochs = 256
 
 train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, classes, device)
+
+def checkpoint(model, checkpointpath):
+    save_model(model, checkpointpath)
 
 with torch.no_grad(): # Test accuracy
     modelpath = "./CIFAR-10-Project/model.pth"
