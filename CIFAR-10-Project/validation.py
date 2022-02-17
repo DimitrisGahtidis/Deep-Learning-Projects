@@ -31,13 +31,17 @@ def animate(i):
     except:
         print("Error loading file... there may be no data yet")
     else:
+        batch_size = dataframe["batch_size"].tolist()[-1]
+        learning_rate = dataframe["learning_rate"].tolist()[-1]
+        
         y_acc_class = []
         for class_ in classes: # create slots to represent each class, we will put the accuracy of each class per epoch in these slots
             y_acc_class.append([])
+        
         y_acc_total = []
-        y_loss = dataframe["loss"]
+        loss = dataframe["loss"].tolist()[-1]
 
-        for confusion in dataframe["matrices"]: # for each confusion matrix on each epoch calculate wanted parameters
+        for confusion in dataframe["confusion"]: # for each confusion matrix on each epoch calculate wanted parameters
             confusion = torch.tensor(pd.eval(confusion).tolist()) # convert confusion matrix to tensor
             acc_list = get_class_accuracy(confusion)
             for slot, acc in zip(y_acc_class, acc_list):
@@ -59,23 +63,13 @@ def animate(i):
         dataframe[plot_list].plot(x="epoch", kind="line", ax=ax[0], style=style_list)
         plt.Axes.clear(ax[1])
         dataframe.plot(x="epoch", y=["loss"], kind="line", ax=ax[1])
+        text = "\n".join((f"batch size = {batch_size}", 
+                                f"learning_rate = {learning_rate}", 
+                                f"accuraccy = {y_acc_total[-1]:.3f}", 
+                                f"loss = {loss:.3f}"))
+        ax[0].text(1.01, 1, text, va="top", transform=ax[0].transAxes, bbox=dict(boxstyle="round", facecolor="white"))
         plt.legend()
-        # plt.tight_layout()
 
 fig, ax = plt.subplots(2,1)
-ani = FuncAnimation(plt.gcf(), animate, interval=13*1000)
+ani = FuncAnimation(plt.gcf(), animate, interval=5*1000)
 plt.show()
-
-# y_acc_class = []
-#     for class_ in classes: # create slots to represent each class, we will put the accuracy of each class per epoch in these slots
-#         y_acc_class.appen([])
-#     y_acc_total = []
-#     y_loss = dataframe["loss"]
-
-#     for confusion in dataframe["matrices"]: # for each confusion matrix on each epoch calculate wanted parameters
-#         confusion = torch.tensor(pd.eval(confusion).tolist()) # convert confusion matrix to tensor
-#         acc_list = get_class_accuracy(confusion)
-#         for slot, acc in zip(y_acc_class, acc_list):
-#             slot.append(acc) # append class acuracy in appropriate slot
-#         acc_total = get_total_accuracy(confusion)
-#         y_acc_total.append(acc_total)

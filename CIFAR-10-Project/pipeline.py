@@ -52,8 +52,10 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
     validation_dict["epoch"] = []
     validation_dict["loss"] = []
     validation_dict["confusion"] = []
+    validation_dict["batch_size"] = []
+    validation_dict["learning_rate"] = []
 
-    n_checkpoints = 3
+    n_checkpoints = 0
     for epoch in range(n_epochs):
         epoch_time = time.time()
         for step, (sample_batch, label_batch) in enumerate(train_dataloader):
@@ -77,7 +79,7 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
 
         with torch.no_grad():
             confusion = make_confusion_matrix(model, validation_dataloader, classes, device)
-            validation_dict = update_validation_dict(validation_dict, epoch, loss, confusion)
+            validation_dict = update_validation_dict(validation_dict, epoch, loss, confusion, batch_size, learning_rate)
             validation_df = pd.DataFrame(validation_dict)
             validation_df.to_csv(validation_path)
         
@@ -89,10 +91,12 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
     print("Finished training...")
     print(f"Time taken: {time.time()-training_time:.3f}")
 
-def update_validation_dict(validation_dict, epoch, loss, confusion):
+def update_validation_dict(validation_dict, epoch, loss, confusion, batch_size, learning_rate):
     validation_dict["epoch"].append(epoch+1)
     validation_dict["loss"].append(loss.item())
     validation_dict["confusion"].append(confusion.tolist())
+    validation_dict["batch_size"].append(batch_size)
+    validation_dict["learning_rate"].append(learning_rate)
     return validation_dict
 
 @torch.no_grad()
@@ -177,7 +181,7 @@ train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-D
 test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
 test_dataset, validation_dataset = random_split(test_dataset, [ceil(len(test_dataset)/2), floor(len(test_dataset)/2)])
 
-batch_size = 4
+batch_size = 128
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
 validation_dataloader = DataLoader(dataset=validation_dataset, batch_size=batch_size)
