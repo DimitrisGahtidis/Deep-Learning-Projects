@@ -51,21 +51,22 @@ Expecting a NN to be 100% accurate is just not feasable.
 The CIFAR-10-Project uses the CIFAR 10 databse of images of vehicles and animals to train a convolutional neural network. Many more interesting features and explorations were made in this 
 project since I was now familiar with pytorch basics from the MNIST Project 
 
-## pipeline.py
+## Description of important files
+
+### pipeline.py
 
 pipeline.py is the training pipeline. Some of it's features include
 * Training a convolutional neural network from scratch
 * (optional) Loading the parameters of an already trainded CNN and training from there
-* Outputing key information during the training epochs to validation-info.csv where the live data can be viewed by running validation.py
+* Outputing key information during the end of training epochs to validation-info.csv where the live data can be viewed by running validation.py
 * Plots and saves a confusion matrix of the final trained CNN
 * Saves checkpoints of the CNN during training to ./CIFAR-10-Project/Checkpoints
 
 the pipeline also prints training information during each epoch and gives an accuracy report during the end of training
 
-## validation.py
+### validation.py
 
 validation.py creates a live plot of the accuracies of all the classes (dogs, cats, etc.) during training as well as the current epoch, loss, and total accuracy.
-
 ## Insights
 
 ### Batch size and the loss landscape
