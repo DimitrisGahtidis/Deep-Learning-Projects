@@ -24,7 +24,7 @@ This conda terminal can now execute the appropriate python files by running
 `python fileiwanttoexecute.py`
 
 # MNIST-Project
-The MNIST project uses the MNIST database of hand written digits to train a neural network. It is the "hello world" of deep learning projects 
+The MNIST project uses the [MNIST dataset](http://yann.lecun.com/exdb/mnist/) of hand written digits to train a neural network. It is the "hello world" of deep learning projects 
 so it seemed suitable to start here. Specifically I wanted to implement 
 [3blue1brown](https://www.youtube.com/c/3blue1brown)'s description of a neural network in his [Neural Networks](https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi)
  series. This model can reach an accuracy of 90% in 100 epochs with a batch size of 100 and a learning rate of 0.1.
@@ -48,8 +48,9 @@ From image-vis.py we can see that some of the images where the neural network go
 Expecting a NN to be 100% accurate is just not feasable. 
 
 # CIFAR-10-Project
-The CIFAR-10-Project uses the CIFAR 10 databse of images of vehicles and animals to train a convolutional neural network. Many more interesting features and explorations were made in this 
-project since I was now familiar with pytorch basics from the MNIST Project 
+The CIFAR-10-Project uses [pytorch's dataloader](http://pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html) for the [CIFAR 10 dataset](https://www.cs.toronto.edu/~kriz/cifar.html). 
+The dataset is composed of images of vehicles and animals to train a convolutional neural network. Many more interesting features and explorations were made in this 
+project since I was now familiar with pytorch basics from the MNIST Project.
 
 ## Description of important files
 
