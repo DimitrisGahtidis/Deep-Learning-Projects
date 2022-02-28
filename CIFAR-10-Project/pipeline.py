@@ -181,7 +181,7 @@ train_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-D
 test_dataset = torchvision.datasets.CIFAR10(root="./CIFAR-10-Project/CIFAR-10-Dataset", train=False, transform=transform)
 test_dataset, validation_dataset = random_split(test_dataset, [ceil(len(test_dataset)/2), floor(len(test_dataset)/2)])
 
-batch_size = 128
+batch_size = 16
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size)
 validation_dataloader = DataLoader(dataset=validation_dataset, batch_size=batch_size)
@@ -194,12 +194,12 @@ model = CNNModel().to(device)
 # model = load_model(CNNModel, model_path).to(device)
 
 # loss and optimizer
-learning_rate = 0.0001
+learning_rate = 0.001
 criterion = nn.CrossEntropyLoss() # cross entropy contains softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) training
-n_epochs = 1024
+n_epochs = 256
 
 train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, classes, device)
 
