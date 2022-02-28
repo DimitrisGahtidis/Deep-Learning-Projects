@@ -70,8 +70,12 @@ the pipeline also prints training information during each epoch and gives an acc
 validation.py creates a live plot of the accuracies of all the classes (dogs, cats, etc.) during training as well as the current epoch, loss, and total accuracy.
 ## Insights
 
-### Batch size and the loss landscape
+### The effect of batch size on the loss landscape
 
 The most interesting insight to come from this project was the effect that the batch size has on the batch size has on the loss landscape during training. 
 The smaller the batch size the "noisier/spikier" the loss landscape, where a larger batch size "smoothens out" the loss landscape. Ideally the batch size will be selected
 such that the loss landscape will be noisy enough to prevent the NN from "memorising" the data.
+
+### Confusion matrices are usefull
+
+
