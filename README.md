@@ -50,7 +50,7 @@ Expecting a NN to be 100% accurate is just not feasable.
 # CIFAR-10-Project
 The CIFAR-10-Project uses [pytorch's dataloader](http://pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html) for the [CIFAR 10 dataset](https://www.cs.toronto.edu/~kriz/cifar.html). 
 The dataset is composed of images of vehicles and animals to train a convolutional neural network. Many more interesting features and explorations were made in this 
-project since I was now familiar with pytorch basics from the MNIST Project.
+project since I was now familiar with pytorch basics from the MNIST Project. The best I could get this specific model to train was to a total accuracy of about 64%.
 
 ## Description of important files
 
@@ -76,6 +76,12 @@ The most interesting insight to come from this project was the effect that the b
 The smaller the batch size the "noisier/spikier" the loss landscape, where a larger batch size "smoothens out" the loss landscape. Ideally the batch size will be selected
 such that the loss landscape will be noisy enough to prevent the NN from "memorising" the data.
 
+![CNN trained with batch size 16](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs16lr0%2C001ep256.png)
+![CNN trained with batch size 256](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs256lr0%2C001ep256.png)
+
 ### Confusion matrices are usefull
 
+It suprised me how useful it is to convert the neural networks performance to visual information that I can interperet as a human. From a quick look to a confusion matrix we can see subsets of the confusion matrix that are lighter than others. For example the light 6x6 square in the middle of the confusion matrix indicates that when presented with the image of an animal the CNN is significantly more likely to confuse it with another animal than with another vehicle. This suggests that the CNN has learned to distinguish the difference between animals and vehicles in general. We can see similar 2x2 hotspots on the top right and bottom left of the confusion matrix, these similarly indicate that when presented with the image of a vehicle the CNN will likely confuse it with another vehicle than an animal. Thi is something I would never have picked up on by looking at the 
+accuracy percentage printed in the terminal screen by the end of the test stage.
 
+![confusion matrix of a CNN that is 64% accurate](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs64.png)
