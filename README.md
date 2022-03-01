@@ -76,8 +76,8 @@ The most interesting insight to come from this project was the effect that the b
 The smaller the batch size the "noisier/spikier" the loss landscape, where a larger batch size "smoothens out" the loss landscape. Ideally the batch size will be selected
 such that the loss landscape will be noisy enough to prevent the NN from "memorising" the data.
 
-![CNN trained with batch size 16](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs16lr0%2C001ep256.png)
-![CNN trained with batch size 256](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs256lr0%2C001ep256.png)
+![CNN trained with batch size 64](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs64lr0%2C001ep256.png)
+![CNN trained with batch size 28](https://github.com/DimitrisGahtidis/Deep-Learning-Projects/blob/master/CIFAR-10-Project/bs128lr0%2C001ep256.png)
 
 ### Confusion matrices are usefull
 
