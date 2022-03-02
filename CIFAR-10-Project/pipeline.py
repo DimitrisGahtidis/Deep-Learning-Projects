@@ -38,7 +38,7 @@ class CNNModel(nn.Module):
 
 def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, optimizer, classes, device):
 
-    training_time = time.time()
+    training_time = time.perf_counter()
 
     batch_size = train_dataloader.batch_size
     n_samples = len(train_dataloader.dataset)
@@ -59,7 +59,7 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
 
     n_checkpoints = 0
     for epoch in range(n_epochs):
-        epoch_time = time.time()
+        epoch_time = time.perf_counter()
         for step, (sample_batch, label_batch) in enumerate(train_dataloader):
             
             sample_batch, label_batch = sample_batch.to(device), label_batch.to(device)
@@ -77,7 +77,7 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
             # propagate changes
             optimizer.step()
             # if ((epoch+1) % 1 == 0)&((step+1) % 256 == 0):
-        print(f'epoch: {epoch+1}/{n_epochs}, loss = {loss.item():.4f}, time = {time.time()-epoch_time}')
+        print(f'epoch: {epoch+1}/{n_epochs}, loss = {loss.item():.4f}, time = {time.perf_counter()-epoch_time}')
 
         with torch.no_grad():
             confusion = make_confusion_matrix(model, validation_dataloader, classes, device)
@@ -91,7 +91,7 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
             n_checkpoints += 1
 
     print("Finished training...")
-    print(f"Time taken: {time.time()-training_time:.3f}")
+    print(f"Time taken: {time.perf_counter()-training_time:.3f}")
 
 def update_validation_dict(validation_dict, epoch, loss, confusion, batch_size, learning_rate):
     validation_dict["epoch"].append(epoch+1)
