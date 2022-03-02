@@ -47,7 +47,9 @@ def train_model(n_epochs, learning_rate, train_dataloader, model, criterion, opt
     print("\nStarting training...")
 
     validation_path = "./CIFAR-10-Project/validation_info.csv"
-    open(validation_path, "w").close() # clear file
+    with open(validation_path) as f:
+        pass    # clear file
+    
     validation_dict = {}
     validation_dict["epoch"] = []
     validation_dict["loss"] = []
